@@ -1,6 +1,9 @@
 import { fetchTMDBData, getPosterUrl, getSimilarMovies } from './api.js';
 import { Store } from './store.js';
 
+let historyStack = [];
+let isNavigatingBack = false;
+
 export function renderNegationTerms(terms) {
   const container = document.getElementById('query-debug-container');
   container.innerHTML = '';
@@ -33,7 +36,7 @@ export function createMovieCard(movie, onClick) {
   div.className = 'movie-card';
   div.innerHTML = `
     <div class="card-poster" id="poster-${movie.movie_id}"></div>
-    <div class="card-info">
+    <div class="card-overlay">
       <h3 class="card-title">${movie.title}</h3>
       <div class="card-meta">
         <span>${movie.year || movie.release_date?.substring(0,4) || ''}</span>
@@ -88,12 +91,19 @@ export function renderAutocomplete(results, listElement, onSelectCallback) {
 }
 
 export async function renderInlineRecommendations(movie, clickedCardElement, onCardClick) {
-  // Use provided callback or default to itself for deep recursion
-  const callback = onCardClick || renderInlineRecommendations;
+  // Navigation Tracking
+  if (!isNavigatingBack) {
+    // Only push if it's not the same movie as the top of stack
+    if (historyStack.length === 0 || historyStack[historyStack.length - 1].movie_id !== movie.movie_id) {
+       historyStack.push(movie);
+    }
+  }
+  isNavigatingBack = false;
 
+  const callback = onCardClick || renderInlineRecommendations;
   const existing = document.querySelector('.inline-recs');
   
-  // DETECT ANCHOR: If clicking from within a details view, keep the same position in main grid
+  // DETECT ANCHOR
   let anchor = clickedCardElement;
   if (existing && existing.contains(clickedCardElement)) {
     anchor = existing.previousElementSibling;
@@ -233,7 +243,11 @@ export async function renderInlineRecommendations(movie, clickedCardElement, onC
       </div>
       ${shelfHtml}
     </div>
-    <button id="close-inline-btn" class="nav-btn close-floating-btn">Close View ✕</button>
+    
+    <div class="nav-cluster">
+      ${historyStack.length > 1 ? `<button id="back-inline-btn" class="nav-btn back-floating-btn">← Back</button>` : ''}
+      <button id="close-inline-btn" class="nav-btn close-floating-btn">Exit to Home ✕</button>
+    </div>
   `;
 
   document.body.style.overflow = 'hidden';
@@ -256,7 +270,20 @@ export async function renderInlineRecommendations(movie, clickedCardElement, onC
       document.getElementById('watchlist-count').textContent = Store.getWatchlistCount();
   });
 
+  // Search for back button
+  const backBtn = inlineContainer.querySelector('#back-inline-btn');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+       historyStack.pop(); // Remove current
+       const prevMovie = historyStack.pop(); // Get previous
+       isNavigatingBack = true;
+       // Re-trigger with same anchor
+       renderInlineRecommendations(prevMovie, anchor, onCardClick);
+    });
+  }
+
   inlineContainer.querySelector('#close-inline-btn').addEventListener('click', () => {
+      historyStack = []; // Reset history
       inlineContainer.remove();
       if (!document.querySelector('.inline-recs')) {
           document.body.style.overflow = '';
