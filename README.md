@@ -15,6 +15,7 @@ SemRec is a high-performance, single-page web application that serves as the fro
 - **Styling:** Custom CSS featuring responsive glassmorphism, contextual ambient glow lights, and CSS grids.
 - **Build Tool:** [Vite](https://vitejs.dev/) for blazing-fast HMR and optimized production bundling.
 - **Search Backend:** FastAPI integrating `sentence-transformers` and `faiss-cpu`, deployed as a Hugging Face Space.
+  - **API Documentation**: [Interactive Swagger UI](https://tytonterrapin-fine-tuned-semantic-movie-recommen-22f16c2.hf.space/docs)
 
 ## Running Locally
 
@@ -33,6 +34,9 @@ Because this project uses modular architecture (`import/export`), it requires a 
 3. Open your browser to `http://localhost:5173/` or whatever port Vite provides.
 
 ## Architecture & Logic
+
+A detailed breakdown of the machine learning pipeline, including embeddings, reranking, and query chunking, can be found in [ML_ARCHITECTURE.md](./ML_ARCHITECTURE.md).
+
 
 - `index.html`: The monolithic view containing our tab-switchable Single Page UI blocks (the Landing Overlay, Home View, and Semantic View).
 - `src/main.js`: Core bootstrapping layer. Handles URL fetching logic, initialization of the movie grids, and tab routing.
