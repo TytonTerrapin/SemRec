@@ -189,7 +189,7 @@ async function initLandingMosaic() {
   combined.forEach((path) => {
     const img = document.createElement('img');
     img.className = 'mosaic-img';
-    img.src = getPosterUrl(path, 'w154');
+    img.src = getPosterUrl(path, 'w342');
     bg.appendChild(img);
     img.onload = () => {
       setTimeout(() => img.classList.add('loaded'), Math.random() * 2000 + 300);

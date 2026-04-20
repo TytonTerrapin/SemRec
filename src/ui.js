@@ -47,7 +47,7 @@ export function createMovieCard(movie, onClick) {
     const pContainer = div.querySelector(`#poster-${movie.movie_id}`);
     if (tData && tData.poster_path) {
       const img = new Image();
-      img.src = getPosterUrl(tData.poster_path, 'w342');
+      img.src = getPosterUrl(tData.poster_path, 'w500');
       img.alt = movie.title;
       img.className = 'card-poster';
       img.onload = () => pContainer.replaceWith(img);
@@ -124,8 +124,8 @@ export async function renderInlineRecommendations(movie, clickedCardElement, onC
   ]);
 
   const overview = movie.overview || (tData ? tData.overview : '');
-  const pUrl = tData && tData.poster_path ? getPosterUrl(tData.poster_path, 'w342') : null;
-  const backUrl = tData && tData.backdrop_path ? `https://image.tmdb.org/t/p/w780${tData.backdrop_path}` : pUrl;
+  const pUrl = tData && tData.poster_path ? getPosterUrl(tData.poster_path, 'w780') : null;
+  const backUrl = tData && tData.backdrop_path ? `https://image.tmdb.org/t/p/w1280${tData.backdrop_path}` : pUrl;
   const posterTag = pUrl ? `<img src="${pUrl}" class="inline-source-poster" />` : `<div class="inline-source-poster" style="background:#111"></div>`;
 
   let taglineHtml = '';
@@ -269,7 +269,7 @@ export async function renderInlineRecommendations(movie, clickedCardElement, onC
              if(td && td.poster_path) {
                  const im = new Image();
                  im.className = 'shelf-poster';
-                 im.src = getPosterUrl(td.poster_path, 'w154');
+                 im.src = getPosterUrl(td.poster_path, 'w342');
                  im.onload = () => pDiv.replaceWith(im);
              } else {
                  pDiv.innerHTML = `<div style="padding:10px;text-align:center;font-size:0.7rem;">${sim.title}</div>`;

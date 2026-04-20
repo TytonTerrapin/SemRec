@@ -80,12 +80,12 @@ export async function fetchPopularPosters() {
   }
 }
 
-export function getPosterUrl(path, size = 'w342') {
+export function getPosterUrl(path, size = 'w500') {
   if (!path) return null;
   return `https://image.tmdb.org/t/p/${size}${path}`;
 }
 
-export function getBackdropUrl(path, size = 'w780') {
+export function getBackdropUrl(path, size = 'w1280') {
   if (!path) return null;
   return `https://image.tmdb.org/t/p/${size}${path}`;
 }
