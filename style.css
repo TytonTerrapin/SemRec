@@ -164,8 +164,10 @@ body {
 .search-container input::placeholder { color: rgba(255,255,255,0.4); }
 .search-container button {
   background: var(--accent); color: #fff; border: none;
-  border-radius: 30px; padding: 0 2rem; height: 100%;
-  font-weight: 600; cursor: pointer; transition: background 0.2s;
+  border-radius: 30px; padding: 0.8rem 2.2rem; height: auto;
+  align-self: stretch; margin: 4px;
+  font-weight: 700; cursor: pointer; transition: background 0.2s;
+  display: flex; align-items: center; justify-content: center;
 }
 .search-container button:hover { background: var(--accent-hover); }
 

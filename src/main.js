@@ -146,6 +146,11 @@ function setupNavigation() {
           v.classList.remove('active-view');
         }
       });
+
+      // Lazy-load catalog if entering home view and empty
+      if(targetId === 'view-home' && !document.querySelector('#catalog-grid .movie-card')) {
+          initCatalog();
+      }
     });
   });
 }
