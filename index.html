@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Semantic Movie Recommender</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <!-- Vibrant Ambient Lights -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+    <div class="ambient-glow glow-3"></div>
+
+    <div id="app">
+      <!-- DEDICATED LANDING INTRO -->
+      <div id="landing-intro" class="fullscreen-landing">
+        <div id="landing-mosaic"></div>
+        <div class="landing-text-container" style="position:relative; z-index: 2;">
+          <h1 class="landing-massive-title">Welcome to SemRec.</h1>
+          <p class="landing-massive-sub">A next-generation movie discovery engine powered by natural language processing and FAISS vector embeddings.</p>
+          <div class="landing-actions">
+            <button class="nav-btn launch-app-btn" data-target="view-home">Explore the Catalog</button>
+            <button class="nav-btn launch-app-btn" data-target="view-semantic">Try Semantic Search</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CORE APP HIDDEN UNTIL ENTERED -->
+      <div id="app-core" class="hidden">
+        <!-- GLOBAL HEADER -->
+        <header class="app-header">
+        <div class="logo" id="logo-home">
+          <h1>Sem<span class="hl">Rec</span></h1>
+          <span class="subtitle" style="display:none">Semantic Recommender</span>
+        </div>
+        <nav class="main-nav">
+          <button class="nav-tab active" data-view="view-home">Explore Catalog</button>
+          <button class="nav-tab" data-view="view-semantic">Semantic Search</button>
+        </nav>
+        <div class="header-actions">
+          <button id="btn-watchlist" class="nav-btn">Watchlist (<span id="watchlist-count">0</span>)</button>
+        </div>
+      </header>
+
+      <main class="container">
+        
+        <!-- ============================================== -->
+        <!-- VIEW: HOME DISCOVERY & CATALOG -->
+        <!-- ============================================== -->
+        <section id="view-home" class="dynamic-view active-view">
+          
+          <div class="hero-banner">
+            <h2 class="hero-title">Discover your next obsession.</h2>
+            <p class="hero-subtitle">Search for any movie to discover personalized, embedding-driven recommendations.</p>
+            
+            <div id="movie-search-box" class="search-mode-panel">
+              <div class="search-container vibrant">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="movie-input" placeholder="Search for a specific title..." autocomplete="off"/>
+                <ul id="autocomplete-list" class="autocomplete-dropdown hidden"></ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Catalog Title -->
+          <div class="catalog-heading">
+            <h3>Trending Now</h3>
+            <p>Popular movies from our recommendation database</p>
+          </div>
+
+          <!-- Initial Loading State -->
+          <div id="catalog-loading" class="text-center hidden">
+            <div class="spinner"></div>
+            <p>Waking up backend models & loading catalog (~10s)...</p>
+          </div>
+
+          <div class="movie-grid" id="catalog-grid">
+            <!-- Populated via HF backend 'popular' query -->
+          </div>
+
+        </section>
+
+        <!-- ============================================== -->
+        <!-- VIEW: SEMANTIC SEARCH -->
+        <!-- ============================================== -->
+        <section id="view-semantic" class="dynamic-view hidden-view">
+          
+          <div class="hero-banner compact">
+            <h2 class="hero-title">Semantic Search</h2>
+            <p class="hero-subtitle">Describe the exact vibe, plot, or themes you are looking for.</p>
+            
+            <div id="semantic-search-box" class="search-mode-panel">
+              <div class="search-container vibrant">
+                <input type="text" id="semantic-input" placeholder="e.g. slow burn thriller but no gore..." autocomplete="off"/>
+                <button id="semantic-btn">Search</button>
+              </div>
+              
+              <button id="filter-toggle" class="text-btn">Advanced Filters ▼</button>
+              <div id="filter-drawer" class="filter-drawer hidden">
+                <div class="filter-grid">
+                  <div class="filter-item">
+                    <label>Genre</label>
+                    <input type="text" id="flt-genre" placeholder="e.g. Thriller">
+                  </div>
+                  <div class="filter-item">
+                    <label>Language</label>
+                    <input type="text" id="flt-lang" placeholder="e.g. en, fr">
+                  </div>
+                  <div class="filter-item">
+                    <label>Min Year</label>
+                    <input type="number" id="flt-min-year" placeholder="1990">
+                  </div>
+                  <div class="filter-item">
+                    <label>Max Year</label>
+                    <input type="number" id="flt-max-year" placeholder="2024">
+                  </div>
+                  <div class="filter-item">
+                    <label>Min Votes</label>
+                    <input type="number" id="flt-min-votes" placeholder="50">
+                  </div>
+                  <div class="filter-item">
+                    <label>Negation Steering (0-1.0)</label>
+                    <input type="number" step="0.1" id="flt-neg" placeholder="Optional">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="query-debug-container" class="debug-banner hidden"></div>
+          </div>
+
+          <!-- Semantic Loading -->
+          <div id="semantic-loading" class="text-center hidden" style="margin-top: 3rem;">
+            <div class="spinner"></div>
+            <p>Searching embedding space...</p>
+          </div>
+
+          <!-- Semantic Results Area -->
+          <div id="semantic-results-area" class="hidden">
+             <div class="results-header">
+                <h2 id="semantic-results-title">Results</h2>
+                <div id="semantic-results-meta" class="meta-info"></div>
+             </div>
+             <div class="movie-grid" id="semantic-grid">
+               <!-- Semantic cards -->
+             </div>
+          </div>
+
+        </section>
+
+      </main>
+      </div> <!-- CLOSING APP CORE -->
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
