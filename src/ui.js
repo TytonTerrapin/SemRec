@@ -88,14 +88,27 @@ export function renderAutocomplete(results, listElement, onSelectCallback) {
 }
 
 export async function renderInlineRecommendations(movie, clickedCardElement, onCardClick) {
+  // Use provided callback or default to itself for deep recursion
+  const callback = onCardClick || renderInlineRecommendations;
+
   const existing = document.querySelector('.inline-recs');
+  
+  // DETECT ANCHOR: If clicking from within a details view, keep the same position in main grid
+  let anchor = clickedCardElement;
+  if (existing && existing.contains(clickedCardElement)) {
+    anchor = existing.previousElementSibling;
+  }
+
   if (existing) existing.remove();
 
   const inlineContainer = document.createElement('div');
   inlineContainer.className = 'inline-recs';
   inlineContainer.innerHTML = `<div style="text-align:center;"><div class="spinner"></div><p style="color:var(--accent)">Analyzing vectors...</p></div>`;
   
-  clickedCardElement.insertAdjacentElement('afterend', inlineContainer);
+  anchor.insertAdjacentElement('afterend', inlineContainer);
+  
+  // Scroll to top of the new detail view
+  inlineContainer.scrollTop = 0;
   
   // Score Explainer Component
   const explainerHtml = `
@@ -261,7 +274,7 @@ export async function renderInlineRecommendations(movie, clickedCardElement, onC
           card.className = 'shelf-card';
           
           card.innerHTML = `<div class="shelf-poster" id="shelf-poster-${sim.movie_id}"></div><div class="shelf-title">${sim.title}</div>`;
-          card.addEventListener('click', () => onCardClick(sim, card));
+          card.addEventListener('click', () => callback(sim, card, callback));
           shelf.appendChild(card);
 
           fetchTMDBData(sim.movie_id).then(td => {
@@ -277,4 +290,22 @@ export async function renderInlineRecommendations(movie, clickedCardElement, onC
           });
       });
   }
+}
+
+export function renderWatchlist(movies, containerElement, onCardClick) {
+  containerElement.innerHTML = '';
+  
+  if (!movies || movies.length === 0) {
+    containerElement.innerHTML = `
+      <div style="grid-column: 1/-1; text-align:center; padding: 4rem 2rem; background: var(--panel-bg); border-radius: 16px; border: 1px dashed var(--panel-border);">
+        <p style="color: var(--text-muted); font-size: 1.1rem;">Your watchlist is empty.</p>
+        <p style="color: var(--accent); margin-top: 0.5rem; cursor: pointer;" onclick="document.querySelector('.logo').click()">Go discover some movies!</p>
+      </div>
+    `;
+    return;
+  }
+
+  movies.forEach(movie => {
+    containerElement.appendChild(createMovieCard(movie, onCardClick));
+  });
 }

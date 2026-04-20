@@ -1,6 +1,6 @@
 import { searchMovies, searchTMDBByTitle, fetchPopularPosters, getPosterUrl } from './api.js';
 import { Store } from './store.js';
-import { renderResults, renderNegationTerms, renderAutocomplete, renderInlineRecommendations } from './ui.js';
+import { renderResults, renderNegationTerms, renderAutocomplete, renderInlineRecommendations, renderWatchlist } from './ui.js';
 
 let debounceTimeout;
 
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
          appCore.classList.remove('hidden');
          
          const targetView = btn.dataset.target;
-         document.querySelector(`.nav-tab[data-view="${targetView}"]`).click();
+         showView(targetView);
          
          // Only init catalog once they actually enter
          if(targetView === 'view-home' && !document.querySelector('.movie-card')) {
@@ -28,6 +28,15 @@ document.addEventListener('DOMContentLoaded', () => {
          }
        }, 500); // Wait for CSS fade out
     });
+  });
+
+  const logo = document.getElementById('logo-home');
+  logo.addEventListener('click', () => showView('view-home'));
+
+  const watchlistBtn = document.getElementById('btn-watchlist');
+  watchlistBtn.addEventListener('click', () => {
+    showView('view-watchlist');
+    renderWatchlist(Store.getWatchlist(), document.getElementById('watchlist-grid'), handleCardClick);
   });
 
   const semanticInput = document.getElementById('semantic-input');
@@ -77,6 +86,42 @@ document.addEventListener('DOMContentLoaded', () => {
   function handleCardClick(movie, cardElement) {
     renderInlineRecommendations(movie, cardElement, handleCardClick);
   }
+
+  // Helper to switch views correctly
+  function showView(viewId) {
+    const tabs = document.querySelectorAll('.nav-tab');
+    const views = document.querySelectorAll('.dynamic-view');
+    
+    // Update Tabs
+    tabs.forEach(t => {
+      if (t.dataset.view === viewId) t.classList.add('active');
+      else t.classList.remove('active');
+    });
+
+    // Update Views
+    views.forEach(v => {
+      if (v.id === viewId) {
+        v.classList.remove('hidden-view');
+        v.classList.add('active-view');
+      } else {
+        v.classList.add('hidden-view');
+        v.classList.remove('active-view');
+      }
+    });
+
+    // Lazy-load catalog
+    if(viewId === 'view-home' && !document.querySelector('#catalog-grid .movie-card')) {
+        initCatalog();
+    }
+    
+    // Refresh watchlist if opening it
+    if(viewId === 'view-watchlist') {
+       renderWatchlist(Store.getWatchlist(), document.getElementById('watchlist-grid'), handleCardClick);
+    }
+  }
+
+  // Expose it for global access if needed (like the logo click)
+  window.showView = showView;
 
   // --- SEMANTIC SEARCH TAB ---
   filterToggle.addEventListener('click', () => {
@@ -129,28 +174,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // App routing / tabs
 function setupNavigation() {
   const tabs = document.querySelectorAll('.nav-tab');
-  const views = document.querySelectorAll('.dynamic-view');
-  
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
       const targetId = tab.dataset.view;
-      
-      views.forEach(v => {
-        if(v.id === targetId) {
-          v.classList.remove('hidden-view');
-          v.classList.add('active-view');
-        } else {
-          v.classList.add('hidden-view');
-          v.classList.remove('active-view');
-        }
-      });
-
-      // Lazy-load catalog if entering home view and empty
-      if(targetId === 'view-home' && !document.querySelector('#catalog-grid .movie-card')) {
-          initCatalog();
-      }
+      if (window.showView) window.showView(targetId);
     });
   });
 }
@@ -168,8 +195,8 @@ async function initCatalog() {
     const grid = document.getElementById('catalog-grid');
     
     renderResults(shuffled, null, null, grid, (movie, el) => {
-        // use UI.js inline render
-        import('./ui.js').then(ui => ui.renderInlineRecommendations(movie, el, ui.renderInlineRecommendations));
+        // UI.js inline render
+        renderInlineRecommendations(movie, el, renderInlineRecommendations);
     });
   } catch (e) {
     document.getElementById('catalog-loading').innerHTML = `<p style="color:var(--accent)">Failed to wake backend. Please try reloading.</p>`;
