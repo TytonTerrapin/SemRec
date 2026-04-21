@@ -1,5 +1,6 @@
 const HF_BASE = 'https://tytonterrapin-fine-tuned-semantic-movie-recommen-22f16c2.hf.space';
-const TMDB_KEY = 'd40c03000a8ca51da2011456878dbd25';
+const TMDB_KEY = import.meta.env.VITE_TMDB_KEY;
+
 const TMDB_BASE = 'https://api.themoviedb.org/3/movie';
 
 const tmdbCache = new Map();
