@@ -120,12 +120,20 @@ export async function renderInlineRecommendations(movie, clickedCardElement, onC
   // Scroll to top of the new detail view
   inlineContainer.scrollTop = 0;
   
+  // Fetch parallel to UI transition
+  const [tData, similarRes] = await Promise.all([
+    fetchTMDBData(movie.movie_id),
+    getSimilarMovies(movie.movie_id)
+  ]);
+
+  const isOpenBook = similarRes && similarRes.input_document;
+
   // Score Explainer Component
   const explainerHtml = `
     <div class="score-explainer">
        <div class="explainer-title">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-          Recommendation Math
+          Recommendation Math ${isOpenBook ? '<span class="badge-enhanced">Vector Insight</span>' : ''}
        </div>
        <div class="explainer-bar-bg">
          <div class="bar-chunk c-sem" style="width: 75%" title="75% Semantic Context"></div>
@@ -139,12 +147,6 @@ export async function renderInlineRecommendations(movie, clickedCardElement, onC
        </div>
     </div>
   `;
-
-  // Fetch parallel to UI transition
-  const [tData, similarRes] = await Promise.all([
-    fetchTMDBData(movie.movie_id),
-    getSimilarMovies(movie.movie_id)
-  ]);
 
   const overview = movie.overview || (tData ? tData.overview : '');
   const pUrl = tData && tData.poster_path ? getPosterUrl(tData.poster_path, 'w780') : null;

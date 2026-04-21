@@ -41,14 +41,63 @@ export async function searchMovies(query, isAutocomplete = false, filters = {}) 
   }
 }
 
+export async function recommendByMovie(movieData) {
+  try {
+    const payload = {
+      title: movieData.title || '',
+      overview: movieData.overview || '',
+      genres: movieData.genres?.map(g => g.name).join(', ') || '',
+      director: movieData.credits?.crew?.find(c => c.job === 'Director')?.name || '',
+      cast: movieData.credits?.cast?.slice(0, 8).map(c => c.name).join(', ') || '',
+      keywords: movieData.keywords?.keywords?.map(k => k.name).join(', ') || '',
+      top_k: 20
+    };
+
+    const res = await fetch(`${HF_BASE}/recommend_by_movie`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) throw new Error('Open-book recommendation failed');
+    return await res.json();
+  } catch (err) {
+    console.error('RecommendByMovie error:', err);
+    return null;
+  }
+}
+
 export async function getSimilarMovies(movieId) {
   try {
     const url = `${HF_BASE}/similar/${movieId}?top_k=20`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error('Similar search failed');
-    return await res.json();
+    
+    // If not found in local index, fallback to recommend_by_movie
+    if (res.status === 404 || !res.ok) {
+      console.log(`Movie ${movieId} not in index, using open-book fallback...`);
+      const tData = await fetchTMDBData(movieId);
+      if (!tData) return null;
+      return await recommendByMovie(tData);
+    }
+
+    const data = await res.json();
+    
+    // If 0 results, also try fallback
+    if (!data.results || data.results.length === 0) {
+       console.log(`Movie ${movieId} returned 0 local results, using open-book fallback...`);
+       const tData = await fetchTMDBData(movieId);
+       if (!tData) return data;
+       return await recommendByMovie(tData);
+    }
+
+    return data;
   } catch (err) {
     console.error('Similar error:', err);
+    // Silent fallback attempt
+    try {
+      const tData = await fetchTMDBData(movieId);
+      if (tData) return await recommendByMovie(tData);
+    } catch(e) {}
     return null;
   }
 }
@@ -56,7 +105,7 @@ export async function getSimilarMovies(movieId) {
 export async function fetchTMDBData(movieId) {
   if (tmdbCache.has(movieId)) return tmdbCache.get(movieId);
   try {
-    const url = `${TMDB_BASE}/${movieId}?api_key=${TMDB_KEY}&append_to_response=credits,videos`;
+    const url = `${TMDB_BASE}/${movieId}?api_key=${TMDB_KEY}&append_to_response=credits,videos,keywords`;
     const res = await fetch(url);
     if (!res.ok) return null;
     const data = await res.json();

@@ -461,3 +461,21 @@ body::before {
   .inline-recs-header { flex-direction: column; }
   .inline-source-poster { width: 160px; }
 }
+
+/* Enhanced Recommendation Badge */
+.badge-enhanced {
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  color: white;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 10px;
+  box-shadow: 0 2px 8px rgba(108, 92, 231, 0.4);
+  display: inline-block;
+  vertical-align: middle;
+  border: 1px solid rgba(255,255,255,0.2);
+  line-height: 1;
+}
