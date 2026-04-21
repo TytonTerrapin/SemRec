@@ -1,0 +1,11 @@
+sentence-transformers
+# FAISS options – install the appropriate package for your environment.
+# The script will try to import `faiss` (GPU) first and fall back to `faiss_cpu`.
+pandas
+pyarrow
+tqdm
+torch
+numpy
+fastapi
+uvicorn
+faiss-cpu  
